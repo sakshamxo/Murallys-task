@@ -105,9 +105,11 @@ export const customerDashboard =  async (req, res) => {
       return res.status(403).json({ message: 'Access denied' });
     }
 
-    const allPackages = await TravelPackage.find().populate('agentId','name');
+    const allPackages = await TravelPackage.find().populate('agentId', 'name city');
 
-    const cityPackages = allPackages.filter(pkg => pkg.agentId.city === req.user.city);
+    const cityPackages = allPackages.filter(
+      pkg => pkg.agentId && pkg.agentId.city === req.user.city
+    );
 
     res.json(cityPackages);
   } catch (error) {

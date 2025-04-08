@@ -29,8 +29,7 @@ export const createPackage = async (req, res) => {
 // 📌 Get all travel packages
 export const getAllPackages = async (req, res) => {
   try {
-    const userCity = req.user.city;
-    const packages = await TravelPackage.find({ city: userCity }).select('-agentId');
+    const packages = await TravelPackage.find().select('-agentId');
     res.json(packages);
   } catch (error) {
     res.status(500).json({ message: 'Server error' });

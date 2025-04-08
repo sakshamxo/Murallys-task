@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { registerCustomer } from "../services/authService";
 import bgImage from "../assets/mountains.jpg";
 import { useAuth } from "../context/AuthContext"; 
+import { motion } from "framer-motion";
 
 const CustomerRegister = () => {
   const [formData, setFormData] = useState({
@@ -18,7 +19,7 @@ const CustomerRegister = () => {
   const [error, setError] = useState(null);
   const navigate = useNavigate();
   const { login } = useAuth();
-  // Fetch geolocation on component mount
+
   useEffect(() => {
     if ("geolocation" in navigator) {
       navigator.geolocation.getCurrentPosition(
@@ -41,10 +42,6 @@ const CustomerRegister = () => {
     }
   }, []);
 
-  // useEffect(() => {
-  //   console.log("Updated formData:", formData);
-  // }, [formData]);
-
   const handleChange = (e) => {
     setFormData((prev) => ({
       ...prev,
@@ -56,15 +53,9 @@ const CustomerRegister = () => {
     e.preventDefault();
     try {
       const response = await registerCustomer(formData);
-      
       if (response?.message === "Customer registration successful") {
-        console.log("✅ Registration successful:", response);
-
-        // ✅ Update AuthContext
-        login(response.user); // This updates `user` in context and localStorage
-
-        console.log("🔄 Navigating to: /dashboard/customer");
-        navigate("/dashboard/customer"); // Navigate to dashboard
+        login(response.user);
+        navigate("/dashboard/customer");
       } else {
         console.error("❌ Unexpected response format:", response);
       }
@@ -74,22 +65,61 @@ const CustomerRegister = () => {
   };
 
   return (
-    <div className="relative h-screen w-full flex items-center justify-center bg-cover bg-center" style={{ backgroundImage: `url(${bgImage})` }}>
-      <div className="absolute inset-0 bg-black opacity-50"></div>
-      
-      <div className="relative bg-white p-8 shadow-lg rounded-lg max-w-md w-full text-center">
-        <h2 className="text-3xl font-bold mb-4 text-gray-800">Customer Registration</h2>
-        {error && <p className="text-red-500">{error}</p>}
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <input type="text" name="name" placeholder="Name" onChange={handleChange} required className="w-full p-3 border rounded" />
-          <input type="email" name="email" placeholder="Email" onChange={handleChange} required className="w-full p-3 border rounded" />
-          <input type="password" name="password" placeholder="Password" onChange={handleChange} required className="w-full p-3 border rounded" />
-          
-          <button type="submit" disabled={loadingLocation} className="w-full bg-blue-500 text-white py-3 rounded-lg font-semibold shadow-md hover:bg-blue-600 transition">
-            {loadingLocation ? "Fetching location..." : "Register"}
-          </button>
+    <div className="relative h-screen w-full flex items-center justify-center bg-cover bg-center overflow-hidden" style={{ backgroundImage: `url(${bgImage})` }}>
+      <div className="absolute inset-0 bg-black opacity-60 backdrop-blur-sm"></div>
+
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.8 }} 
+        animate={{ opacity: 1, scale: 1 }} 
+        transition={{ duration: 0.6, ease: "easeOut" }}
+        className="relative z-10 bg-white p-10 shadow-2xl rounded-3xl max-w-lg w-full text-center backdrop-blur-lg bg-opacity-90"
+      >
+        <h2 className="text-4xl font-extrabold mb-6 text-gray-800 tracking-tight drop-shadow-md">Join as a Customer</h2>
+        {error && <p className="text-red-500 mb-4 text-sm font-medium">{error}</p>}
+
+        <form onSubmit={handleSubmit} className="space-y-5">
+          <motion.input 
+            whileFocus={{ scale: 1.02 }} 
+            type="text" 
+            name="name" 
+            placeholder="Your Name" 
+            onChange={handleChange} 
+            required 
+            className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 transition" 
+          />
+
+          <motion.input 
+            whileFocus={{ scale: 1.02 }} 
+            type="email" 
+            name="email" 
+            placeholder="Email Address" 
+            onChange={handleChange} 
+            required 
+            className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 transition" 
+          />
+
+          <motion.input 
+            whileFocus={{ scale: 1.02 }} 
+            type="password" 
+            name="password" 
+            placeholder="Password" 
+            onChange={handleChange} 
+            required 
+            className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 transition" 
+          />
+
+          <motion.button 
+            whileTap={{ scale: 0.95 }} 
+            type="submit" 
+            disabled={loadingLocation} 
+            className="w-full bg-gradient-to-r from-blue-500 to-purple-500 text-white py-3 rounded-xl font-semibold text-lg shadow-md hover:from-blue-600 hover:to-purple-600 transition duration-300"
+          >
+            {loadingLocation ? "Fetching location..." : "Register Now"}
+          </motion.button>
         </form>
-      </div>
+
+        <p className="text-gray-600 mt-4 text-sm">Already have an account? <a href="/login" className="text-blue-500 font-medium hover:underline">Login here</a></p>
+      </motion.div>
     </div>
   );
 };

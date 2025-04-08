@@ -11,6 +11,7 @@ import {
   getBookings,
   verifyRazorpayPayment,
 } from "../services/bookingService";
+import { MapPin, Loader2, IndianRupee, Moon, Sun } from "lucide-react";
 
 const CustomerDashboard = () => {
   const { location, error, requestLocation } = useGeolocation();
@@ -18,6 +19,8 @@ const CustomerDashboard = () => {
   const [packages, setPackages] = useState([]);
   const [bookings, setBookings] = useState([]);
   const [loadingBookingId, setLoadingBookingId] = useState(null);
+  const [darkMode, setDarkMode] = useState(false);
+
   useEffect(() => {
     if (location && user?.role === "customer") {
       fetchCustomerDashboard(location.city).then((data) => setPackages(data));
@@ -56,13 +59,10 @@ const CustomerDashboard = () => {
 
   const handleBook = async (packageId) => {
     try {
-      // const booking = await bookPackage(packageId);
-      // setBookings((prev) => [...prev, booking]);
-      // alert("Package added to cart! You can pay from your bookings below.");
       await bookPackage(packageId);
-const updatedBookings = await getBookings();
-setBookings(updatedBookings);
-alert("Package added to cart! You can pay from your bookings below.");
+      const updatedBookings = await getBookings();
+      setBookings(updatedBookings);
+      alert("Package added to cart! You can pay from your bookings below.");
     } catch (error) {
       console.error("Booking failed:", error);
       alert("Failed to book package. Please try again.");
@@ -70,7 +70,7 @@ alert("Package added to cart! You can pay from your bookings below.");
   };
 
   const handlePayment = async (booking) => {
-    setLoadingBookingId(booking._id); // only this booking will show processing
+    setLoadingBookingId(booking._id);
 
     try {
       const { orderId, amount, currency } = await createRazorpayOrder(
@@ -117,7 +117,7 @@ alert("Package added to cart! You can pay from your bookings below.");
       console.error("Payment error:", error);
       alert("Payment failed. Please try again.");
     } finally {
-      setLoadingBookingId(null); // reset specific booking loading state
+      setLoadingBookingId(null);
     }
   };
 
@@ -134,11 +134,22 @@ alert("Package added to cart! You can pay from your bookings below.");
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-100 to-purple-100 p-8 pt-24">
-      <div className="max-w-6xl mx-auto">
-        <h1 className="text-4xl font-bold text-center text-gray-800 mb-8">
-          Explore Travel Packages in Your City
-        </h1>
+    <div className={
+      `min-h-screen p-8 pt-24 transition-colors duration-300 ease-in-out ` +
+      (darkMode ? "bg-gray-900 text-white" : "bg-gray-50 text-gray-800")
+    }>
+      <div className="max-w-7xl mx-auto">
+        <div className="flex justify-between items-center mb-10">
+          <h1 className="text-5xl font-extrabold text-center w-full">
+            Discover Getaways in Your City
+          </h1>
+          <button
+            onClick={() => setDarkMode(!darkMode)}
+            className="absolute top-6 right-6 p-2 rounded-full shadow bg-indigo-600 text-white hover:bg-indigo-700 transition"
+          >
+            {darkMode ? <Sun /> : <Moon />}
+          </button>
+        </div>
 
         {error && (
           <div className="text-red-500 text-center mb-4">Error: {error}</div>
@@ -148,7 +159,7 @@ alert("Package added to cart! You can pay from your bookings below.");
           <div className="flex justify-center mb-6">
             <button
               onClick={requestLocation}
-              className="px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all shadow-md"
+              className="px-6 py-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-all shadow-md"
             >
               Enable Location
             </button>
@@ -161,73 +172,83 @@ alert("Package added to cart! You can pay from your bookings below.");
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 mb-14">
               {Array.isArray(packages) && packages.length > 0 ? (
                 packages.map((pkg) => (
                   <div
                     key={pkg._id}
-                    className="bg-white rounded-2xl p-6 shadow-xl hover:shadow-2xl transition-all border border-gray-200"
+                    className={
+                      `rounded-2xl shadow-md hover:shadow-xl overflow-hidden border transition ` +
+                      (darkMode
+                        ? "bg-gray-800 border-gray-700"
+                        : "bg-white border-gray-200")
+                    }
                   >
-                    <h2 className="text-2xl font-bold text-indigo-700 mb-2">
-                      {pkg.destination}
-                    </h2>
-                    {/* <p className="mt-2 text-sm text-gray-500">
-                      Provided by:{" "}
-                      <span className="font-semibold text-black">
-                        {pkg.agentId?.name || "Unknown Agent"}
-                      </span>
-                    </p> */}
-                    <p className="text-gray-600 mb-4">{pkg.description}</p>
-                    <div className="flex justify-between items-center">
-                      <span className="text-xl font-semibold text-green-600">
-                        ₹{pkg.price}
-                      </span>
-
-                      <button
-                        onClick={() => handleBook(pkg._id)}
-                        className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-all"
-                      >
-                        Book
-                      </button>
+                    <img
+                      src={`https://images.unsplash.com/photo-1598091383021-15ddea10925d?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D`}
+                      alt={pkg.destination}
+                      className="w-full h-52 object-cover"
+                    />
+                    <div className="p-5">
+                      <h2 className="text-2xl font-bold mb-1">
+                        {pkg.destination}
+                      </h2>
+                      <p className="text-sm mb-3">
+                        {pkg.description.slice(0, 100)}...
+                      </p>
+                      <div className="flex justify-between items-center">
+                        <span className="text-xl font-bold text-green-500 flex items-center gap-1">
+                          <IndianRupee size={18} /> {pkg.price}
+                        </span>
+                        <button
+                          onClick={() => handleBook(pkg._id)}
+                          className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition"
+                        >
+                          Book
+                        </button>
+                      </div>
                     </div>
                   </div>
                 ))
               ) : (
-                <p className="text-gray-500 text-center col-span-3">
+                <p className="text-center col-span-3">
                   No travel packages available.
                 </p>
               )}
             </div>
 
-            <h2 className="text-3xl font-bold text-gray-800 mb-6">
-              Your Bookings
-            </h2>
+            <h2 className="text-3xl font-extrabold mb-6">Your Bookings</h2>
             {bookings.length === 0 ? (
-              <p className="text-gray-500 text-center">No bookings yet.</p>
+              <p className="text-center">No bookings yet.</p>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {bookings.map((booking) => (
                   <div
                     key={booking._id}
-                    className="bg-white p-5 rounded-xl shadow border"
+                    className={
+                      `p-6 rounded-xl shadow border transition ` +
+                      (darkMode
+                        ? "bg-gray-800 border-gray-700"
+                        : "bg-white border-gray-200")
+                    }
                   >
-                    <h3 className="text-xl font-semibold text-blue-800 mb-1">
+                    <h3 className="text-2xl font-semibold mb-1">
                       {booking.packageId?.destination || "Unknown Destination"}
                     </h3>
-                    <p className="text-gray-700 mb-1">
+                    <p className="mb-1">
                       <strong>Price:</strong> ₹{booking.packageId?.price}
                     </p>
-                    <p className="text-gray-700 mb-2">
+                    <p className="mb-2">
                       <strong>Status:</strong>{" "}
                       <span
-                        className={`font-medium ${
+                        className={`font-medium capitalize ${
                           booking.status === "confirmed"
-                            ? "text-green-600"
+                            ? "text-green-500"
                             : booking.status === "pending"
-                            ? "text-yellow-600"
+                            ? "text-yellow-500"
                             : booking.status === "unpaid"
                             ? "text-red-500"
-                            : "text-gray-500"
+                            : "text-gray-400"
                         }`}
                       >
                         {booking.status}
@@ -237,12 +258,17 @@ alert("Package added to cart! You can pay from your bookings below.");
                     {booking.status === "unpaid" && (
                       <button
                         onClick={() => handlePayment(booking)}
-                        className="mt-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all"
+                        className="mt-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
                         disabled={loadingBookingId === booking._id}
                       >
-                        {loadingBookingId === booking._id
-                          ? "Processing..."
-                          : "Pay Now"}
+                        {loadingBookingId === booking._id ? (
+                          <>
+                            <Loader2 className="animate-spin inline mr-2" />
+                            Processing...
+                          </>
+                        ) : (
+                          "Pay Now"
+                        )}
                       </button>
                     )}
 
